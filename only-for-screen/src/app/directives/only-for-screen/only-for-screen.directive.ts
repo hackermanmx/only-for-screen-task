@@ -1,28 +1,26 @@
 import {
-  AfterViewInit, Directive, ElementRef, HostListener, Input, OnChanges, Renderer, TemplateRef,
+  Directive, ElementRef, HostListener, Input, OnInit, TemplateRef,
   ViewContainerRef
 } from '@angular/core';
-
-import { IConfig } from '../../interfaces/iconfig';
+import {StoreService} from '../../shared/store.service';
 
 @Directive({
   selector: '[onlyForScreen]'
 })
-export class OnlyForScreenDirective implements OnChanges {
-  config: IConfig = {
-    mobile: 460,
-    tablet: 768,
-    desktop: 1100
-  };
+export class OnlyForScreenDirective implements OnInit {
+  view: string;
 
   @Input() set onlyForScreen(view: string) {
-    this.setVisibility(view, document.querySelector('body').clientWidth);
+    this.view = view;
   };
 
-  constructor(private eleRef: ElementRef,
+  constructor(private el: ElementRef,
+              public store: StoreService,
               private viewContainer: ViewContainerRef,
               private templateRef: TemplateRef<any>
-  ) { }
+  ) {
+    this.store.windowResize$.subscribe(this.isShowEl.bind(this));
+  }
 
   /*
     mobile: viewportWidth < config.mobile
@@ -30,19 +28,18 @@ export class OnlyForScreenDirective implements OnChanges {
     desktop: config.tablet <= viewportWidth
   */
 
-  ngOnChanges() {
+  ngOnInit() {
 
   }
 
-  setVisibility(view: string, width: number) {
-    if (view === 'mobile' && width < this.config.mobile) {
-      this.viewContainer.createEmbeddedView(this.templateRef);
-    } else if (view === 'tablet' && width <= this.config.tablet) {
-      this.viewContainer.createEmbeddedView(this.templateRef);
-    } else if (view === 'desktop' && this.config.tablet <= width) {
+  isShowEl(width) {
+     // console.log(window.innerWidth + ' --- ' + this.size);
+
+    if (this.store.conf[this.view] < width) {
+      this.viewContainer.remove();
       this.viewContainer.createEmbeddedView(this.templateRef);
     } else {
-      this.viewContainer.clear();
+      this.viewContainer.remove();
     }
   }
 
