@@ -29,7 +29,7 @@ export class OnlyForScreenDirective implements OnInit {
   */
 
   ngOnInit() {
-
+    this.isShowEl(window.innerWidth);
   }
 
   isShowEl(width) {
